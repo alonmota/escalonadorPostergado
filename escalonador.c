@@ -13,18 +13,26 @@ typedef struct estrutura{
 }*vetor[n], lista, *elo;
 
 int main () {
-
+	elo aux, novo;
 	int idFila;
 	tipoTupla exec;
+
+	/*Cabeça da lista*/
+	novo = (elo*) malloc(sizeof(lista));
+	novo->nome = NULL;
+	novo->delay = NULL;
+	novo->copias = NULL;
+	novo->prioridade = NULL;
+	novo->jobId = NULL;
+	novo->prox = NULL;
+
 
 	if (idFila = msgget(0x1233, 0x124) < 0 ) {
 		printf("Erro na criação da fila de mensagens!\n");
 		exit(EXIT_FAILURE);
 	}
 
-	while(1) {
-		elo aux, novo;
-		
+	while(1) {		
 		msgrcv(idFila, &exec, sizeof(tipoTupla), 0, 0);
 		printf("mensagem recebida\n");
 		printf("%s,%s,%d,%d,%d\n", exec.nome, exec.delay, exec.copias, exec.prioridade, exec.jobId );                                                                           
@@ -36,7 +44,7 @@ int main () {
 	    	aux = aux->prox;                    
 	    	}
 
-			novo  = (elo) calloc(1, sizeof(lista));      
+			novo  = (elo) malloc(sizeof(lista));      
 			aux->prox = novo;                             
 			novo->prox = NULL;                           
 			novo->nome = exec.nome;
@@ -52,7 +60,7 @@ int main () {
 	    	aux = aux->prox;                    
 	    	}
 
-			novo  = (elo) calloc(1, sizeof(lista));      
+			novo  = (elo) malloc(sizeof(lista));      
 			aux->prox = novo;                             
 			novo->prox = NULL;                           
 			novo->nome = exec.nome;
@@ -68,7 +76,7 @@ int main () {
 	    	aux = aux->prox;                    
 	    	}
 
-			novo  = (elo) calloc(1, sizeof(lista));      
+			novo  = (elo) malloc(sizeof(lista));      
 			aux->prox = novo;                             
 			novo->prox = NULL;                           
 			novo->nome = exec.nome;
