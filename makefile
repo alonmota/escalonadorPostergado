@@ -1,13 +1,16 @@
+CC = g++
+FLAGS = -std=c++11
+
 
 solicita-execucao:
-	gcc -std=c99  -o solicita_execucao solicita_execucao.c
+	${CC} ${FLAGS} -o solicita_execucao solicita_execucao.cpp -I.
 
 escalonador:
-	gcc -std=c99  -o escalonador escalonador.c
+	${CC} ${FLAGS} -o escalonador escalonador.cpp -I.
 
 bild:
-	gcc -std=c99  -o solicita_execucao solicita_execucao.c -I.
-	gcc -std=c99  -o escalonador escalonador.c -I.
+	${CC} ${FLAGS} -o solicita_execucao solicita_execucao.cpp -I.
+	${CC} ${FLAGS} -o escalonador escalonador.cpp -I.
 
 clear:
 	rm solicita_execucao escalonador

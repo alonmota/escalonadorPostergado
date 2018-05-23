@@ -26,7 +26,7 @@ int main (int argc, char* argv[]) {
 		exit(EXIT_FAILURE);
 	}
 	
-	if (idFila = msgget(0x1233, IPC_CREAT | 0x1FF) < 0 ) {
+	if (idFila = msgget(0x1233, 0x124) < 0 ) {
 		printf("Erro na criação da fila de mensagens!\n");
 		exit(EXIT_FAILURE);
 	}
