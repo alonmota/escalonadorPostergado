@@ -16,7 +16,6 @@ void recebeNovosProcessos(int idFila, tipoEstruturaExecucao* filasDeExecucao);
 int main () {
 
 	int idFila;
-	
 	tipoEstruturaExecucao filasDeExecucao;
 
 	if (idFila = msgget(0x1233, IPC_CREAT | 0x1FF) < 0 ) {
@@ -30,9 +29,7 @@ int main () {
 
 }
 
-
 void atualisaTemporizador() {
-
 }
 
 void executaProcessosZerados(tipoEstruturaExecucao* filasDeExecucao) {
