@@ -19,7 +19,9 @@ int main (int argc, char* argv[]) {
 	int idFila;
 	int job = 0;
 	tipoTupla exec;
-
+	char *hr_str;
+	char *min_str;
+	int hr, min;
 
 	if(!validateParams(argc, argv)) {
 		printf("Argumentos invalidos!\n");
@@ -27,12 +29,16 @@ int main (int argc, char* argv[]) {
 	}
 	
 	if (idFila = msgget(0x1233, 0x124) < 0 ) {
-		printf("Erro na criação da fila de mensagens!\n");
+		printf("Erro na obtebção da fila de mensagens!\n");
 		exit(EXIT_FAILURE);
 	}
 
 	strcpy( exec.nome, argv[4] );
-	strcpy( exec.delay, argv[1] );
+	hr_str = strtok(argv[1], ":");
+	min_str = strtok(NULL, "\0");
+	hr = (int) strtol(hr_str, (char **)NULL, 10);
+	min = (int) strtol(min_str, (char **)NULL, 10);
+	exec.delay_sec = (hr*3600) + (min*60);
 	exec.copias = (int) strtol(argv[2], (char **)NULL, 10);
 	exec.prioridade = (int) strtol(argv[3], (char **)NULL, 10);
 	exec.jobId = getUnicJobId(argv);

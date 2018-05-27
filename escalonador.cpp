@@ -5,11 +5,11 @@
 #include <stdlib.h>
 #include <list>
 #include <string.h>
-#include <time.h>
+#include <unistd.h>
 
 #include "dataTypes.h"
 
-void atualisaTemporizador();
+void atualisaTemporizador(tipoEstruturaExecucao* filasDeExecucao);
 void executaProcessosZerados(tipoEstruturaExecucao* filasDeExecucao);
 void recebeNovosProcessos(int idFila, tipoEstruturaExecucao* filasDeExecucao);
 
@@ -23,18 +23,27 @@ int main () {
 		exit(EXIT_FAILURE);
 	}
 
-	atualisaTemporizador();
-	recebeNovosProcessos(idFila, &filasDeExecucao);
-	executaProcessosZerados(&filasDeExecucao);
-
+	while (1) {
+		atualisaTemporizador(&filasDeExecucao);
+		recebeNovosProcessos(idFila, &filasDeExecucao);
+		executaProcessosZerados(&filasDeExecucao);
+		fflush(stdout);
+		sleep(1);
+	}
 }
 
-void atualisaTemporizador() {
+void atualisaTemporizador(tipoEstruturaExecucao* filasDeExecucao) {
+	
+	for(auto &exec : filasDeExecucao->listaDeEspera) {
+		exec.delay_sec = exec.delay_sec - 1;
+	}
+
 }
 
 void executaProcessosZerados(tipoEstruturaExecucao* filasDeExecucao) {
+
 	for(tipoTupla exec : filasDeExecucao->listaDeEspera) {
-		if( strcmp(exec.delay, "0:00")  == 0 ) { //TODO descobrir como trabalhar com tempo
+		if( exec.delay_sec == 0 ) { 
 			switch (exec.prioridade) {
 				case 1:
 					filasDeExecucao->lista1.push_back(exec);
@@ -51,51 +60,21 @@ void executaProcessosZerados(tipoEstruturaExecucao* filasDeExecucao) {
 				default:
 					printf("Prioridade invalida\n");
 			}
-			printf("lsita 1\n");
-			for(tipoTupla t : filasDeExecucao->lista1) {
-				printf("   %s,%s,%d,%d,%d\n", t.nome, t.delay, t.copias, t.prioridade, t.jobId );	
-			}
-			printf("lsita 2\n");
-			for(tipoTupla t : filasDeExecucao->lista2) {
-				printf("   %s,%s,%d,%d,%d\n", t.nome, t.delay, t.copias, t.prioridade, t.jobId );	
-			}
-			printf("lsita 3\n");
-			for(tipoTupla t : filasDeExecucao->lista3) {
-				printf("   %s,%s,%d,%d,%d\n", t.nome, t.delay, t.copias, t.prioridade, t.jobId );	
-			}
-			printf("lsita de Espera\n");
-			for(tipoTupla t : filasDeExecucao->listaDeEspera) {
-				printf("   %s,%s,%d,%d,%d\n", t.nome, t.delay, t.copias, t.prioridade, t.jobId );	
-			}
 		}
 	}
-	filasDeExecucao->listaDeEspera.remove_if([](tipoTupla t){ return strcmp(t.delay, "0:00")  == 0; });
+	filasDeExecucao->listaDeEspera.remove_if([](tipoTupla t){ return t.delay_sec == 0; });
 }
 
 
 void recebeNovosProcessos(int idFila, tipoEstruturaExecucao* filasDeExecucao) {
 	tipoTupla exec;
 	while(msgrcv(idFila, &exec, sizeof(tipoTupla), 0, IPC_NOWAIT) != -1) {
-		printf("mensagem recebida\n");
+		printf("Solicitação de execuçao confirmada!\n");
 		filasDeExecucao->listaDeEspera.push_back(exec);
-	
-		printf("lsita 1\n");
-		for(tipoTupla t : filasDeExecucao->lista1) {
-			printf("   %s,%s,%d,%d,%d\n", t.nome, t.delay, t.copias, t.prioridade, t.jobId );	
-		}
-		printf("lsita 2\n");
-		for(tipoTupla t : filasDeExecucao->lista2) {
-			printf("   %s,%s,%d,%d,%d\n", t.nome, t.delay, t.copias, t.prioridade, t.jobId );	
-		}
-		printf("lsita 3\n");
-		for(tipoTupla t : filasDeExecucao->lista3) {
-			printf("   %s,%s,%d,%d,%d\n", t.nome, t.delay, t.copias, t.prioridade, t.jobId );	
-		}
-		printf("lsita de Espera\n");
+		
+		printf("lista de Espera\n");
 		for(tipoTupla t : filasDeExecucao->listaDeEspera) {
-			printf("   %s,%s,%d,%d,%d\n", t.nome, t.delay, t.copias, t.prioridade, t.jobId );	
+			printf("   %s,%d,%d,%d,%d\n", t.nome, t.delay_sec, t.copias, t.prioridade, t.jobId );	
 		}
 	}
-
-	
 }
