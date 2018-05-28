@@ -77,7 +77,7 @@ void recebeNovosProcessos(int idFila, std::list<tipoTupla> *listaDeEspera) {
 	tipoMensagem msg;
 	
 	while(msgrcv(idFila, &msg, sizeof(msg.tupla), 1, IPC_NOWAIT) != -1) {
-		printf("Solicitação de execuçao confirmada!%d\n",msg.tupla.prioridade);
+		printf("Solicitação de execuçao confirmada!\n");
 		(*listaDeEspera).push_back(msg.tupla);
 		sleep(1);
 	}
@@ -93,11 +93,20 @@ void rotinaDeExecucao (int idFila) {
 			for (int i = 0; i<msg.tupla.copias; i++) {
 				filasDeExecucao.fila[msg.tupla.prioridade-1].push_back(msg.tupla);
 			}
+			for (int i = 0; i<3; i++) {
+				printf("fila %d\n", i+1);
+				for(auto exec : filasDeExecucao.fila[i]) {
+					printf("   %s, %d, %d\n", msg.tupla.nome, msg.tupla.prioridade, msg.tupla.jobId);
+				}
+			}
+
 		}
 		//controla a execucao
-
+		
 
 
 		fflush(stdout);
+
+
 	}
 }
