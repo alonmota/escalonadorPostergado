@@ -5,6 +5,7 @@
 #define NONE_UP 2
 #define ONE_UP 3
 
+
 typedef struct st {
 	char nome[200];
 	int delay_sec;
@@ -14,8 +15,11 @@ typedef struct st {
 	int controleFila;
 } tipoTupla;
 
+typedef struct msg {
+	long msgType;
+	tipoTupla tupla;
+} tipoMensagem;
+
 typedef struct {
-	std::list<tipoTupla> lista1;
-	std::list<tipoTupla> lista2;
-	std::list<tipoTupla> lista3;
+	std::list<tipoTupla> fila[3];
 } tipoEstruturaExecucao;

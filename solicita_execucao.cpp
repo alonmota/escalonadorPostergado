@@ -19,6 +19,7 @@ int main (int argc, char* argv[]) {
 	int idFila;
 	int job = 0;
 	tipoTupla exec;
+	tipoMensagem msg;
 	char *hr_str;
 	char *min_str;
 	int hr, min;
@@ -39,13 +40,14 @@ int main (int argc, char* argv[]) {
 	hr = (int) strtol(hr_str, (char **)NULL, 10);
 	min = (int) strtol(min_str, (char **)NULL, 10);
 	//exec.delay_sec = (hr*3600) + (min*60);
-	exec.delay_sec = 3;
+	exec.delay_sec = 3; //para agilizar testes
 	exec.copias = (int) strtol(argv[2], (char **)NULL, 10);
 	exec.prioridade = (int) strtol(argv[3], (char **)NULL, 10);
 	exec.jobId = getUnicJobId(argv);
 
-	msgsnd(idFila, &exec, sizeof(tipoTupla), 0);
-
+	msg.msgType = 1;
+	msg.tupla = exec;
+	msgsnd(idFila, &msg, sizeof(msg.tupla), 0);
 }
 
 
