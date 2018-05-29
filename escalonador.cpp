@@ -38,7 +38,7 @@ int p_sem()
      operacao[1].sem_op = 1;
      operacao[1].sem_flg = 0;
      if ( semop(idsem, operacao, 2) < 0)
-       printf("erro no p=%d\n", errno);
+       printf("Erro na criação do semaforo\n");
 }
 int v_sem()
 {
@@ -46,7 +46,7 @@ int v_sem()
      operacao[0].sem_op = -1;
      operacao[0].sem_flg = 0;
      if ( semop(idsem, operacao, 1) < 0)
-       printf("erro no p=%d\n", errno);
+       printf("Erro na criação do semaforo\n");
 }
 
 int main () {
@@ -111,7 +111,7 @@ void recebeNovosProcessos(int idFila, std::list<tipoTupla> *listaDeEspera) {
 	tipoMensagem msg;
 	
 	while(msgrcv(idFila, &msg, sizeof(msg.tupla), 1, IPC_NOWAIT) != -1) {
-		printf("Solicitação de execuçao confirmada!\n");
+		//printf("\nSolicitação de execuçao confirmada!\n");
 		(*listaDeEspera).push_back(msg.tupla);
 		sleep(1);
 	}
@@ -120,8 +120,6 @@ void recebeNovosProcessos(int idFila, std::list<tipoTupla> *listaDeEspera) {
 
 void rotinaDeExecucao (int idFila) {
 	tipoMensagem msg;
-	int status;
-	alarm(0);
 	while (1) {
 		pid_t pids[MAX_COPIES];
 		
@@ -134,13 +132,12 @@ void rotinaDeExecucao (int idFila) {
 				} else if (pids[i] == 0) { //executa codigo do filho, chama o programa
 					if (execl(msg.tupla.nome, msg.tupla.nome, (char *) NULL) < 0){
 						printf("Erro no execl = %d\n", errno);
-					} else {
-						kill(getpid(), SIGSTOP);						
 					}
 				} else {
 					tipoProgExec buf;
 					buf.status = NONE_DOWN;
 					buf.pid = pids[i];
+					kill(pids[i], SIGSTOP);
 					p_sem();
 					fila = msg.tupla.prioridade-1;
 					filasDeExecucao.fila[msg.tupla.prioridade-1].push_back(buf);
@@ -148,6 +145,8 @@ void rotinaDeExecucao (int idFila) {
 				}
 			}
 		}
+		funcao_sigalarm(0);
+		
 		fflush(stdout);
 	}
 }
@@ -157,24 +156,27 @@ void funcao_sigalarm(int signal_number) {
 	if (running == 0) {
 		if (!filasDeExecucao.fila[0].empty()){
 			prog = filasDeExecucao.fila[0].front();
-			kill(prog.pid, SIGCONT);
 			alarm(5);
+			//printf("mandou executar fila 0 prog %d \n", prog.pid);
+			kill(prog.pid, SIGCONT);
 			p_sem();
 			running = prog.pid;
 			fila = 0;
 			v_sem();
 		} else if (!filasDeExecucao.fila[1].empty()){
 			prog = filasDeExecucao.fila[1].front();
-			kill(prog.pid, SIGCONT);
 			alarm(5);
+			//printf("mandou executar fila 1 prog %d \n", prog.pid);
+			kill(prog.pid, SIGCONT);
 			p_sem();
 			running = prog.pid;
 			fila = 1;
 			v_sem();
 		} else if (!filasDeExecucao.fila[2].empty()){
 			prog = filasDeExecucao.fila[2].front();
-			kill(prog.pid, SIGCONT);
 			alarm(5);
+			//printf("mandou executar fila 2 prog %d \n", prog.pid);
+			kill(prog.pid, SIGCONT);
 			p_sem();
 			running = prog.pid;
 			fila = 2;
@@ -182,15 +184,15 @@ void funcao_sigalarm(int signal_number) {
 		} else {
 			alarm(1);
 		}
-	} else {
+	} else if (signal_number != 0 ) {
 		tipoProgExec aux;		
 		p_sem();
 		aux = filasDeExecucao.fila[fila].front();
 		kill(aux.pid, SIGSTOP);
-		if(aux.status = NONE_DOWN) {
+		if(aux.status == NONE_DOWN) {
 			aux.status = ONE_DOWN;
 			filasDeExecucao.fila[fila].push_back(aux);
-		} else if (aux.status = ONE_DOWN) {
+		} else if (aux.status == ONE_DOWN) {
 			if (fila == 2) {
 				aux.status = NONE_UP;
 				filasDeExecucao.fila[fila-1].push_back(aux);
@@ -198,10 +200,10 @@ void funcao_sigalarm(int signal_number) {
 				aux.status = NONE_DOWN;
 				filasDeExecucao.fila[fila+1].push_back(aux);
 			}
-		} else if (aux.status = NONE_UP) {
+		} else if (aux.status == NONE_UP) {
 			aux.status = ONE_UP;
 			filasDeExecucao.fila[fila].push_back(aux);
-		} else if (aux.status = ONE_UP) {
+		} else if (aux.status == ONE_UP) {
 			if (fila == 0) {
 				aux.status = NONE_DOWN;
 				filasDeExecucao.fila[fila+1].push_back(aux);
@@ -214,8 +216,23 @@ void funcao_sigalarm(int signal_number) {
 		running = 0;
 		fila = -1;
 		v_sem();
-		alarm(0);
 		
+	} else {
+		int status;		
+		pid_t buf;;
+		if ((buf = waitpid(-1, &status, WNOHANG)) > 0 ) {
+			//printf("ecerrou %d\n", buf);
+			for(int i = 0; i < 3; i++) {
+				for (std::list<tipoProgExec>::iterator t = filasDeExecucao.fila[i].begin(); 
+					t != filasDeExecucao.fila[i].end(); ) {
+					if (t->pid == buf) {
+						t = filasDeExecucao.fila[i].erase(t);               
+					} else {
+						t++;						
+					}
+				}			
+			}
+		}
 	}
 	
 }

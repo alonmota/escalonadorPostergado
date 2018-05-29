@@ -2,7 +2,7 @@
 #include <stdio.h>
 
 int main() {
-    sleep(10);
+    sleep(50);
     printf("rodou");
     return 0;
 }
