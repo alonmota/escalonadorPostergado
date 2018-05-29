@@ -1,3 +1,13 @@
+/******************************************
+*UnB - Universidade de Brasília
+*Sistemas Operacionais
+*Prof. Dra Alba Cristina Melo
+*Gerente de escalonador postergado de processos
+*Alon ...
+*Rodrigo de Sousa Saldanha - 110139143
+*******************************************/
+
+
 #include <sys/types.h>
 #include <sys/ipc.h>
 #include <sys/msg.h>
