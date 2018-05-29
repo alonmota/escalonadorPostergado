@@ -9,8 +9,14 @@
 
 int main(int argc, char *argv[]){
 	int idshm, *pid;
+	tipoTupla exec;
+
+	if(!validateParams(argc, argv)) {
+		printf("Argumentos invalidos!\n");
+		exit(EXIT_FAILURE);
+	}
     
-    idshm = shmget(PAI, sizeof(int), IPC_CREAT|0600);
+    idshm = shmget(PAI, sizeof(exec), IPC_CREAT|0600);
     pid = (int *) shmat(idshm, NULL, 0);
     
     kill(*pid, SIGUSR1);

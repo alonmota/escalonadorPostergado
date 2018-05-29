@@ -5,22 +5,23 @@
 #include <sys/ipc.h>
 #include <sys/msg.h>
 
-void remover_processos(std::list<tipoTupla> *listaDeEspera);
 
 int main(int argc, char *argv[]){
-	
-	int pid = fork();	
-	if ( pid < 0 ) {
-		printf( "Erro no fork!\n" );
-		exit (EXIT_FAILURE);
-	} else if (pid == 0) {
-		remover_processos(&listaDeEspera);
+	tipoTupla exec;
+
+	if(!validateParams(argc, argv)) {
+		printf("Argumentos invalidos!\n");
+		exit(EXIT_FAILURE);
 	}
 
-}
-
-void remover_processos(std::list<tipoTupla> *listaDeEspera){
-
-
+	exec.jobId = getUnicJobId(argv);
+	
+	for(auto exec : *listaDeEspera) {
+		if( exec.delay_sec == argv[1] ) {
+			//tirar elemento da estrutura
+		}else{
+			printf("Nao foi possivel remover processo\n");
+		}
+	}
 
 }
