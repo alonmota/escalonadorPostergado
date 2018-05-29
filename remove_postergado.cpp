@@ -1,27 +1,16 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <dataTypes.h>
 #include <sys/types.h>
 #include <sys/ipc.h>
 #include <sys/msg.h>
 
-
 int main(int argc, char *argv[]){
-	tipoTupla exec;
-
-	if(!validateParams(argc, argv)) {
-		printf("Argumentos invalidos!\n");
+	int idFila;
+	tipoMsgRmv msg;
+	
+	if (idFila = msgget(0x1233, 0x124) < 0 ) {
+		printf("Erro na obtebção da fila de mensagens!\n");
 		exit(EXIT_FAILURE);
 	}
-
-	exec.jobId = getUnicJobId(argv);
-	
-	for(auto exec : *listaDeEspera) {
-		if( exec.delay_sec == argv[1] ) {
-			//tirar elemento da estrutura
-		}else{
-			printf("Nao foi possivel remover processo\n");
-		}
-	}
-
+	msg.msgType = 3;
+	msg.jobId = (int) strtol(argv[1], (char **)NULL, 10);;
+	msgsnd(idFila, &msg, sizeof(msg.jobId), 0);
 }

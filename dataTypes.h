@@ -8,7 +8,7 @@
 #define ONE_UP 3
 
 
-typedef struct st {
+typedef struct {
 	char nome[200];
 	char hora[8];
 	int delay_sec;
@@ -18,10 +18,15 @@ typedef struct st {
 	int controleFila;
 } tipoTupla;
 
-typedef struct msg {
+typedef struct {
 	long msgType;
 	tipoTupla tupla;
 } tipoMensagem;
+
+typedef struct {
+	long msgType;
+	int jobId;
+} tipoMsgRmv;
 
 typedef struct {
 	pid_t pid;
