@@ -107,13 +107,19 @@ void executaProcessosZerados(int idFila, std::list<tipoTupla> *listaDeEspera) {
 }
 
 
+
 void recebeNovosProcessos(int idFila, std::list<tipoTupla> *listaDeEspera) {
 	tipoMensagem msg;
 	
 	while(msgrcv(idFila, &msg, sizeof(msg.tupla), 1, IPC_NOWAIT) != -1) {
 		//printf("\nSolicitação de execuçao confirmada!\n");
 		(*listaDeEspera).push_back(msg.tupla);
-		sleep(1);
+
+		printf("\n%-5.5s %-25.23s %-6.6s %-5.5s %-5.5s\n", "job", "arq_exec", "hh:mm", "cop", "pri");
+		for(auto exec : (*listaDeEspera)){
+			printf("%-5d %-25.23s %-6.6s %-5d %-5d\n", exec.jobId, exec.nome, exec.hora, exec.copias, exec.prioridade);
+		}
+		fflush(stdout);		
 	}
 }
 

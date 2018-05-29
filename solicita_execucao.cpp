@@ -35,12 +35,13 @@ int main (int argc, char* argv[]) {
 	}
 
 	strcpy( exec.nome, argv[4] );
+	strcpy( exec.hora, argv[1] );
 	hr_str = strtok(argv[1], ":");
 	min_str = strtok(NULL, "\0");
 	hr = (int) strtol(hr_str, (char **)NULL, 10);
 	min = (int) strtol(min_str, (char **)NULL, 10);
-	//exec.delay_sec = (hr*3600) + (min*60);
-	exec.delay_sec = 1; //para agilizar testes
+	exec.delay_sec = (hr*3600) + (min*60);
+	//exec.delay_sec = 1; //para agilizar testes
 	exec.copias = (int) strtol(argv[2], (char **)NULL, 10);
 	exec.prioridade = (int) strtol(argv[3], (char **)NULL, 10);
 	exec.jobId = getUnicJobId(argv);

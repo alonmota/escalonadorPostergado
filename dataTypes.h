@@ -10,6 +10,7 @@
 
 typedef struct st {
 	char nome[200];
+	char hora[8];
 	int delay_sec;
 	int copias;
 	int prioridade;
