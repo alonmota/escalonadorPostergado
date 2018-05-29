@@ -1,5 +1,7 @@
 #include <list>
 
+#define MAX_COPIES 50
+
 #define NONE_DOWN 0
 #define ONE_DOWN 1
 #define NONE_UP 2
@@ -21,5 +23,10 @@ typedef struct msg {
 } tipoMensagem;
 
 typedef struct {
-	std::list<tipoTupla> fila[3];
+	pid_t pid;
+	int status;
+} tipoProgExec;
+
+typedef struct {
+	std::list<tipoProgExec> fila[3];
 } tipoEstruturaExecucao;
