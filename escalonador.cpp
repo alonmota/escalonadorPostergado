@@ -54,15 +54,18 @@ int v_sem()
 }
 
 int main () {
+	//rotinas de tratamento de sinais
 	signal(SIGALRM, funcao_sigalarm);
 	signal(SIGUSR2, shutdown);
 	
+	//obtendo mensagens
 	int idFila;	
 	if (idFila = msgget(0x1233, IPC_CREAT | 0x1FF) < 0 ) {
 		printf("Erro na criação da fila de mensagens!\n");
 		exit(EXIT_FAILURE);
 	}
 
+	//obtendo semaforos
 	if ((idsem = semget(0x1223, 1, IPC_CREAT|0x1ff)) < 0) {
 		printf("Erro na criação do semaforo\n");
 		exit(EXIT_FAILURE);
@@ -117,6 +120,7 @@ void recebeNovosProcessos(int idFila, std::list<tipoTupla> *listaDeEspera) {
 	tipoMensagem msg;
 	tipoMsgRmv msgRmv;
 
+	//recebe tipo 1 = adicionar na lista de espera
 	while(msgrcv(idFila, &msg, sizeof(msg.tupla), 1, IPC_NOWAIT) != -1) {
 		//printf("\nSolicitação de execuçao confirmada!\n");
 		(*listaDeEspera).push_back(msg.tupla);
@@ -128,6 +132,7 @@ void recebeNovosProcessos(int idFila, std::list<tipoTupla> *listaDeEspera) {
 		fflush(stdout);		
 	}
 
+	//recebe tipo 3 remove fila espera
 	while(msgrcv(idFila, &msgRmv, sizeof(msgRmv.jobId), 3, IPC_NOWAIT) != -1) {
 		for (std::list<tipoTupla>::iterator t = listaDeEspera->begin(); 
 			t != listaDeEspera->end(); ) {
@@ -165,6 +170,7 @@ void rotinaDeExecucao (int idFila) {
 					tipoProgExec buf;
 					buf.status = NONE_DOWN;
 					buf.pid = pids[i];
+					//força a parada dos programas para que seja feito o controle de apenas um rodar 
 					kill(pids[i], SIGSTOP);
 					p_sem();
 					fila = msg.tupla.prioridade-1;
@@ -182,6 +188,7 @@ void rotinaDeExecucao (int idFila) {
 void funcao_sigalarm(int signal_number) {
 	if(signal_number == SIGALRM){
 		tipoProgExec prog;
+		//se nenhum processo esta rodando coloca o primeiro viavel a rodar ou espera 
 		if (running == 0) {
 			if (!filasDeExecucao.fila[0].empty()){
 				prog = filasDeExecucao.fila[0].front();
@@ -214,6 +221,7 @@ void funcao_sigalarm(int signal_number) {
 				alarm(1);
 			}
 		} else if (signal_number != 0 ) {
+			//se o temporizador esgotou para o processo rodando calcula prioridade e esvazia a execução
 			tipoProgExec aux;		
 			p_sem();
 			aux = filasDeExecucao.fila[fila].front();
@@ -248,7 +256,8 @@ void funcao_sigalarm(int signal_number) {
 			
 		} else {
 			int status;		
-			pid_t buf;;
+			pid_t buf;
+			//remove os processos zumbis 
 			if ((buf = waitpid(-1, &status, WNOHANG)) > 0 ) {
 				//printf("ecerrou %d\n", buf);
 				for(int i = 0; i < 3; i++) {
