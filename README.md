@@ -4,9 +4,8 @@ Sistemas Operacionais
 Prof. Dra Alba Cristina Melo
 Escalonador Postergado
 
-Autor: 
+Autores: 
     Alon Mota - 130005002
-Coautor:
     Rodrigo de Sousa Saldanha - 110139143
 
 Este software tem como objetivo gerenciar a execução de processos de forma postergada,
