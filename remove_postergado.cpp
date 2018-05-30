@@ -1,6 +1,11 @@
 #include <sys/types.h>
 #include <sys/ipc.h>
 #include <sys/msg.h>
+#include <stdlib.h>
+#include <stdio.h>
+
+
+#include "dataTypes.h"
 
 int main(int argc, char *argv[]){
 	int idFila;
@@ -11,6 +16,6 @@ int main(int argc, char *argv[]){
 		exit(EXIT_FAILURE);
 	}
 	msg.msgType = 3;
-	msg.jobId = (int) strtol(argv[1], (char **)NULL, 10);;
+	msg.jobId = (int) strtol(argv[1], (char **)NULL, 10);
 	msgsnd(idFila, &msg, sizeof(msg.jobId), 0);
 }

@@ -1,17 +1,15 @@
 CC = g++
 FLAGS = -std=c++11
+INCLUDE = -I.
 
+SRCS = $(wildcard *.cpp)
 
-solicita-execucao:
-	${CC} ${FLAGS} -o solicita_execucao solicita_execucao.cpp -I.
+PROGS = $(patsubst %.cpp,%,$(SRCS))
 
-escalonador:
-	${CC} ${FLAGS} -o escalonador escalonador.cpp -I.
+build: $(PROGS)
 
-bild:
-	${CC} ${FLAGS} -o teste teste.cpp
-	${CC} ${FLAGS} -o solicita_execucao solicita_execucao.cpp -I.
-	${CC} ${FLAGS} -o escalonador escalonador.cpp -I.
+%: %.cpp
+	 ${CC} ${FLAGS} -o $@ $<  ${INCLUDE}
 
 clear:
-	rm solicita_execucao escalonador teste
+	find . -maxdepth 1 -type f -executable -delete

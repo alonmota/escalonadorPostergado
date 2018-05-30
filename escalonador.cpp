@@ -3,8 +3,10 @@
 *Sistemas Operacionais
 *Prof. Dra Alba Cristina Melo
 *Gerente de escalonador postergado de processos
-*Alon ...
+*Alon Mota Lourenço - 130005002
 *Rodrigo de Sousa Saldanha - 110139143
+*
+* Informações adicionais no README
 *******************************************/
 
 
@@ -24,14 +26,6 @@
 #include <signal.h>
 
 #include "dataTypes.h"
-
-void atualisaTemporizador(std::list<tipoTupla> *listaDeEspera);
-void executaProcessosZerados(int idFila, std::list<tipoTupla> *listaDeEspera);
-void recebeNovosProcessos(int idFila, std::list<tipoTupla> *listaDeEspera);
-void funcao_sigalarm(int signal_number);
-
-void rotinaDeControle(int idFilaMsg);
-void rotinaDeExecucao(int idFilaMsg);
 
 struct sembuf operacao[2];
 int idsem;
@@ -61,6 +55,7 @@ int v_sem()
 
 int main () {
 	signal(SIGALRM, funcao_sigalarm);
+	signal(SIGUSR2, shutdown);
 	
 	int idFila;	
 	if (idFila = msgget(0x1233, IPC_CREAT | 0x1FF) < 0 ) {
@@ -132,10 +127,21 @@ void recebeNovosProcessos(int idFila, std::list<tipoTupla> *listaDeEspera) {
 		}
 		fflush(stdout);		
 	}
-	while(msgrcv(idFila, &msg, sizeof(msg.jobId), 3, IPC_NOWAIT) != -1) {
-		//printf("\nSolicitação de execuçao confirmada!\n");
-		(*listaDeEspera).push_back(msg.tupla);
-		sleep(1);
+
+	while(msgrcv(idFila, &msgRmv, sizeof(msgRmv.jobId), 3, IPC_NOWAIT) != -1) {
+		for (std::list<tipoTupla>::iterator t = listaDeEspera->begin(); 
+			t != listaDeEspera->end(); ) {
+			if (t->jobId == msgRmv.jobId) {
+				t = listaDeEspera->erase(t);
+			} else {
+				t++;
+			}
+		}
+		printf("\n%-5.5s %-25.23s %-6.6s %-5.5s %-5.5s\n", "job", "arq_exec", "hh:mm", "cop", "pri");
+		for(auto exec : (*listaDeEspera)){
+			printf("%-5d %-25.23s %-6.6s %-5d %-5d\n", exec.jobId, exec.nome, exec.hora, exec.copias, exec.prioridade);
+		}
+		fflush(stdout);
 	}
 }
 
@@ -174,88 +180,95 @@ void rotinaDeExecucao (int idFila) {
 }
 
 void funcao_sigalarm(int signal_number) {
-	tipoProgExec prog;
-	if (running == 0) {
-		if (!filasDeExecucao.fila[0].empty()){
-			prog = filasDeExecucao.fila[0].front();
-			alarm(5);
-			//printf("mandou executar fila 0 prog %d \n", prog.pid);
-			kill(prog.pid, SIGCONT);
+	if(signal_number == SIGALRM){
+		tipoProgExec prog;
+		if (running == 0) {
+			if (!filasDeExecucao.fila[0].empty()){
+				prog = filasDeExecucao.fila[0].front();
+				alarm(5);
+				//printf("mandou executar fila 0 prog %d \n", prog.pid);
+				kill(prog.pid, SIGCONT);
+				p_sem();
+				running = prog.pid;
+				fila = 0;
+				v_sem();
+			} else if (!filasDeExecucao.fila[1].empty()){
+				prog = filasDeExecucao.fila[1].front();
+				alarm(5);
+				//printf("mandou executar fila 1 prog %d \n", prog.pid);
+				kill(prog.pid, SIGCONT);
+				p_sem();
+				running = prog.pid;
+				fila = 1;
+				v_sem();
+			} else if (!filasDeExecucao.fila[2].empty()){
+				prog = filasDeExecucao.fila[2].front();
+				alarm(5);
+				//printf("mandou executar fila 2 prog %d \n", prog.pid);
+				kill(prog.pid, SIGCONT);
+				p_sem();
+				running = prog.pid;
+				fila = 2;
+				v_sem();
+			} else {
+				alarm(1);
+			}
+		} else if (signal_number != 0 ) {
+			tipoProgExec aux;		
 			p_sem();
-			running = prog.pid;
-			fila = 0;
+			aux = filasDeExecucao.fila[fila].front();
+			kill(aux.pid, SIGSTOP);
+			if(aux.status == NONE_DOWN) {
+				aux.status = ONE_DOWN;
+				filasDeExecucao.fila[fila].push_back(aux);
+			} else if (aux.status == ONE_DOWN) {
+				if (fila == 2) {
+					aux.status = NONE_UP;
+					filasDeExecucao.fila[fila-1].push_back(aux);
+				} else {
+					aux.status = NONE_DOWN;
+					filasDeExecucao.fila[fila+1].push_back(aux);
+				}
+			} else if (aux.status == NONE_UP) {
+				aux.status = ONE_UP;
+				filasDeExecucao.fila[fila].push_back(aux);
+			} else if (aux.status == ONE_UP) {
+				if (fila == 0) {
+					aux.status = NONE_DOWN;
+					filasDeExecucao.fila[fila+1].push_back(aux);
+				} else {
+					aux.status = NONE_UP;
+					filasDeExecucao.fila[fila-1].push_back(aux);
+				}
+			}
+			filasDeExecucao.fila[fila].pop_front();
+			running = 0;
+			fila = -1;
 			v_sem();
-		} else if (!filasDeExecucao.fila[1].empty()){
-			prog = filasDeExecucao.fila[1].front();
-			alarm(5);
-			//printf("mandou executar fila 1 prog %d \n", prog.pid);
-			kill(prog.pid, SIGCONT);
-			p_sem();
-			running = prog.pid;
-			fila = 1;
-			v_sem();
-		} else if (!filasDeExecucao.fila[2].empty()){
-			prog = filasDeExecucao.fila[2].front();
-			alarm(5);
-			//printf("mandou executar fila 2 prog %d \n", prog.pid);
-			kill(prog.pid, SIGCONT);
-			p_sem();
-			running = prog.pid;
-			fila = 2;
-			v_sem();
+			
 		} else {
-			alarm(1);
-		}
-	} else if (signal_number != 0 ) {
-		tipoProgExec aux;		
-		p_sem();
-		aux = filasDeExecucao.fila[fila].front();
-		kill(aux.pid, SIGSTOP);
-		if(aux.status == NONE_DOWN) {
-			aux.status = ONE_DOWN;
-			filasDeExecucao.fila[fila].push_back(aux);
-		} else if (aux.status == ONE_DOWN) {
-			if (fila == 2) {
-				aux.status = NONE_UP;
-				filasDeExecucao.fila[fila-1].push_back(aux);
-			} else {
-				aux.status = NONE_DOWN;
-				filasDeExecucao.fila[fila+1].push_back(aux);
-			}
-		} else if (aux.status == NONE_UP) {
-			aux.status = ONE_UP;
-			filasDeExecucao.fila[fila].push_back(aux);
-		} else if (aux.status == ONE_UP) {
-			if (fila == 0) {
-				aux.status = NONE_DOWN;
-				filasDeExecucao.fila[fila+1].push_back(aux);
-			} else {
-				aux.status = NONE_UP;
-				filasDeExecucao.fila[fila-1].push_back(aux);
-			}
-		}
-		filasDeExecucao.fila[fila].pop_front();
-		running = 0;
-		fila = -1;
-		v_sem();
-		
-	} else {
-		int status;		
-		pid_t buf;;
-		if ((buf = waitpid(-1, &status, WNOHANG)) > 0 ) {
-			//printf("ecerrou %d\n", buf);
-			for(int i = 0; i < 3; i++) {
-				for (std::list<tipoProgExec>::iterator t = filasDeExecucao.fila[i].begin(); 
-					t != filasDeExecucao.fila[i].end(); ) {
-					if (t->pid == buf) {
-						t = filasDeExecucao.fila[i].erase(t);               
-					} else {
-						t++;						
+			int status;		
+			pid_t buf;;
+			if ((buf = waitpid(-1, &status, WNOHANG)) > 0 ) {
+				//printf("ecerrou %d\n", buf);
+				for(int i = 0; i < 3; i++) {
+					for (std::list<tipoProgExec>::iterator t = filasDeExecucao.fila[i].begin(); 
+						t != filasDeExecucao.fila[i].end(); ) {
+						if (t->pid == buf) {
+							t = filasDeExecucao.fila[i].erase(t);
+						} else {
+							t++;
+						}
 					}
-				}		
+				}
 			}
 		}
 	}
-	
 }
 
+
+void shutdown(int signal_number) {
+	printf("recebi um signal");
+	fflush(stdout);
+
+}
